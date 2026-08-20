@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HBM Cafe — Menu</title>
+<style>
+  :root{
+    --bg: #12100e;
+    --bg-soft: #1c1815;
+    --card: #211c18;
+    --gold: #d4af6a;
+    --gold-soft: #e8cd97;
+    --text: #f2ece2;
+    --text-dim: #a89d8e;
+    --border: #35302a;
+    --danger: #c9584f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: radial-gradient(circle at top, #1a1613 0%, var(--bg) 60%);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+  header{
+    text-align:center;
+    padding: 42px 20px 28px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  header h1{
+    font-size: 2.1rem;
+    letter-spacing: 2px;
+    color: var(--gold-soft);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  header .tagline{
+    margin-top: 6px;
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+  }
+  header .divider{
+    width: 60px; height: 2px;
+    background: var(--gold);
+    margin: 14px auto 0;
+    opacity: 0.7;
+  }
+  .admin-toggle{
+    position: absolute;
+    top: 16px; right: 16px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+  }
+  .admin-toggle:hover{ border-color: var(--gold); color: var(--gold); }
+
+  .categories{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding: 18px 20px 6px;
+    scrollbar-width:none;
+  }
+  .categories::-webkit-scrollbar{display:none;}
+  .cat-btn{
+    flex:0 0 auto;
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .cat-btn.active, .cat-btn:hover{
+    background: var(--gold);
+    color: #1a1613;
+    border-color: var(--gold);
+    font-weight: 600;
+  }
+
+  main{ max-width: 720px; margin: 0 auto; padding: 10px 16px 20px; }
+
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+    margin-top: 14px;
+  }
+  .item-card{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    transition: transform 0.15s, border-color 0.2s;
+    position: relative;
+  }
+  .item-card:hover{
+    transform: translateY(-3px);
+    border-color: var(--gold);
+  }
+  .item-card .name{
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .item-card .desc{
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    min-height: 16px;
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  .item-card .price{
+    color: var(--gold-soft);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .item-card .cat-tag{
+    position:absolute;
+    top:10px; right:12px;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .item-card .edit-controls{
+    display:none;
+    margin-top: 10px;
+    gap: 8px;
+  }
+  .item-card .edit-controls.show{ display:flex; }
+  .item-card .edit-controls button{
+    flex:1;
+    padding: 6px 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+  .item-card .edit-controls button:hover{ color: var(--gold); border-color: var(--gold); }
+  .item-card .edit-controls button.del:hover{ color: var(--danger); border-color: var(--danger); }
+
+  .empty-state{
+    text-align:center;
+    color: var(--text-dim);
+    padding: 40px 20px;
+    font-size: 0.9rem;
+  }
+
+  footer{
+    text-align:center;
+    margin-top: 40px;
+    padding: 24px 20px 10px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+  footer a{ color: var(--gold-soft); text-decoration:none; }
+  footer a:hover{ text-decoration:underline; }
+  footer .made{ margin-top: 10px; font-size: 0.72rem; opacity: 0.6; }
+
+  /* Admin panel */
+  .admin-bar{
+    display:none;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 16px 6px;
+  }
+  .admin-bar.show{ display:block; }
+  .add-form{
+    background: var(--card);
+    border: 1px solid var(--gold);
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 14px;
+    display: grid;
+    gap: 10px;
+  }
+  .add-form input, .add-form select{
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    color: var(--text);
+    font-size: 0.9rem;
+  }
+  .add-form input:focus, .add-form select:focus{
+    outline: none;
+    border-color: var(--gold);
+  }
+  .add-form button{
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: var(--gold);
+    color: #1a1613;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+  .add-form button:hover{ background: var(--gold-soft); }
+
+  /* Passcode modal */
+  .modal-overlay{
+    display:none;
+    position: fixed; inset:0;
+    background: rgba(0,0,0,0.6);
+    align-items:center; justify-content:center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal{
+    background: var(--card);
+    border: 1px solid var(--gold);
+    border-radius: 14px;
+    padding: 24px;
+    width: 100%;
+    max-width: 300px;
+    text-align:center;
+  }
+  .modal h3{ color: var(--gold-soft); margin-bottom: 14px; font-size: 1.05rem; }
+  .modal input{
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    color: var(--text);
+    text-align:center;
+    letter-spacing: 4px;
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+  .modal-btns{ display:flex; gap: 8px; }
+  .modal-btns button{
+    flex:1;
+    padding: 9px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    color: var(--text);
+    cursor:pointer;
+  }
+  .modal-btns button.confirm{ background: var(--gold); color:#1a1613; border-color:var(--gold); font-weight:700; }
+  .modal-error{ color: var(--danger); font-size: 0.8rem; margin-top: -6px; margin-bottom: 10px; min-height: 14px; }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="admin-toggle" id="adminToggleBtn">Admin</button>
+  <h1>HBM Cafe</h1>
+  <div class="tagline">Tea &amp; Coffee, Made with Care</div>
+  <div class="divider"></div>
+</header>
+
+<div class="categories" id="categories"></div>
+
+<div class="admin-bar" id="adminBar">
+  <div class="add-form" id="addForm">
+    <input type="text" id="newName" placeholder="Item name (e.g. Masala Chai)">
+    <input type="text" id="newPrice" placeholder="Price (e.g. 20)" inputmode="decimal">
+    <input type="text" id="newDesc" placeholder="Short description (optional)">
+    <input type="text" id="newCat" placeholder="Category (e.g. Drinks, Snacks)">
+    <button onclick="addItem()">+ Add Item</button>
+  </div>
+</div>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <div class="empty-state" id="emptyState" style="display:none;">No items in this category yet.</div>
+</main>
+
+<footer>
+  <div>📍 HBM Cafe</div>
+  <div style="margin-top:6px;">📞 <a href="tel:+966552313218">+966 55 231 3218</a></div>
+  <div style="margin-top:4px;">💬 <a href="https://wa.me/966552313218" target="_blank">Chat on WhatsApp</a></div>
+  <div class="made">Menu updates itself — powered by this device only.</div>
+</footer>
+
+<!-- Passcode Modal -->
+<div class="modal-overlay" id="passModal">
+  <div class="modal">
+    <h3>Admin Access</h3>
+    <input type="password" id="passInput" placeholder="Enter passcode" maxlength="10">
+    <div class="modal-error" id="passError"></div>
+    <div class="modal-btns">
+      <button onclick="closeModal()">Cancel</button>
+      <button class="confirm" onclick="checkPasscode()">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const ADMIN_PASSCODE = "1234";
+  const STORAGE_KEY = "hbm_cafe_items";
+  const ADMIN_KEY = "hbm_cafe_admin";
+
+  const defaultItems = [
+    { id: 1, name: "Tea", price: 20, desc: "Freshly brewed hot tea", category: "Drinks" },
+    { id: 2, name: "Coffee", price: 25, desc: "Rich and aromatic coffee", category: "Drinks" },
+    { id: 3, name: "Puffs", price: 10, desc: "Flaky, savory puff pastry", category: "Snacks" }
+  ];
+
+  let items = loadItems();
+  let activeCategory = "All";
+  let isAdmin = sessionStorage.getItem(ADMIN_KEY) === "true";
+
+  function loadItems(){
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try { return JSON.parse(stored); } catch(e) { return [...defaultItems]; }
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultItems));
+    return [...defaultItems];
+  }
+
+  function saveItems(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  }
+
+  function getCategories(){
+    const cats = ["All", ...new Set(items.map(i => i.category || "Other"))];
+    return cats;
+  }
+
+  function renderCategories(){
+    const wrap = document.getElementById("categories");
+    wrap.innerHTML = "";
+    getCategories().forEach(cat => {
+      const btn = document.createElement("button");
+      btn.className = "cat-btn" + (cat === activeCategory ? " active" : "");
+      btn.textContent = cat;
+      btn.onclick = () => { activeCategory = cat; render(); };
+      wrap.appendChild(btn);
+    });
+  }
+
+  function renderGrid(){
+    const grid = document.getElementById("grid");
+    const emptyState = document.getElementById("emptyState");
+    grid.innerHTML = "";
+    const filtered = activeCategory === "All" ? items : items.filter(i => (i.category || "Other") === activeCategory);
+
+    if (filtered.length === 0){
+      emptyState.style.display = "block";
+      return;
+    }
+    emptyState.style.display = "none";
+
+    filtered.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "item-card";
+      card.innerHTML = `
+        <div class="cat-tag">${item.category || ""}</div>
+        <div class="name">${escapeHtml(item.name)}</div>
+        <div class="desc">${escapeHtml(item.desc || "")}</div>
+        <div class="price">Rs ${item.price}</div>
+        <div class="edit-controls ${isAdmin ? 'show' : ''}">
+          <button class="del" onclick="deleteItem(${item.id})">Delete</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function render(){
+    renderCategories();
+    renderGrid();
+    document.getElementById("adminBar").className = "admin-bar" + (isAdmin ? " show" : "");
+    document.getElementById("adminToggleBtn").textContent = isAdmin ? "Exit Admin" : "Admin";
+  }
+
+  function addItem(){
+    const name = document.getElementById("newName").value.trim();
+    const price = document.getElementById("newPrice").value.trim();
+    const desc = document.getElementById("newDesc").value.trim();
+    const cat = document.getElementById("newCat").value.trim() || "Other";
+
+    if (!name || !price){
+      alert("Please enter at least a name and price.");
+      return;
+    }
+
+    const newId = items.length ? Math.max(...items.map(i => i.id)) + 1 : 1;
+    items.push({ id: newId, name, price: parseFloat(price) || 0, desc, category: cat });
+    saveItems();
+
+    document.getElementById("newName").value = "";
+    document.getElementById("newPrice").value = "";
+    document.getElementById("newDesc").value = "";
+    document.getElementById("newCat").value = "";
+
+    activeCategory = "All";
+    render();
+  }
+
+  function deleteItem(id){
+    if (!confirm("Remove this item from the menu?")) return;
+    items = items.filter(i => i.id !== id);
+    saveItems();
+    render();
+  }
+
+  document.getElementById("adminToggleBtn").addEventListener("click", () => {
+    if (isAdmin){
+      isAdmin = false;
+      sessionStorage.setItem(ADMIN_KEY, "false");
+      render();
+    } else {
+      openModal();
+    }
+  });
+
+  function openModal(){
+    document.getElementById("passModal").classList.add("show");
+    document.getElementById("passInput").value = "";
+    document.getElementById("passError").textContent = "";
+    setTimeout(() => document.getElementById("passInput").focus(), 50);
+  }
+  function closeModal(){
+    document.getElementById("passModal").classList.remove("show");
+  }
+  function checkPasscode(){
+    const val = document.getElementById("passInput").value;
+    if (val === ADMIN_PASSCODE){
+      isAdmin = true;
+      sessionStorage.setItem(ADMIN_KEY, "true");
+      closeModal();
+      render();
+    } else {
+      document.getElementById("passError").textContent = "Incorrect passcode.";
+    }
+  }
+  document.getElementById("passInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") checkPasscode();
+  });
+
+  render();
+</script>
+
+</body>
+</html>
